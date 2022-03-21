@@ -3,46 +3,46 @@
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <tf/transform_listener.h>
 
-class PCTFTransform{
+class PcTfTransform{
 	private:
 		/*node handle*/
-		ros::NodeHandle _nh;
-		ros::NodeHandle _nhPrivate;
+		ros::NodeHandle nh_;
+		ros::NodeHandle nh_private_;
 		/*subscriber*/
-		ros::Subscriber _sub_pc;
+		ros::Subscriber sub_;
 		/*publisher*/
-		ros::Publisher _pub_pc;
+		ros::Publisher pub_;
 		/*tf*/
-		tf::TransformListener _tflistener;
-		/*parameters*/
-		std::string _target_frame;
+		tf::TransformListener tf_listener_;
+		/*parameter*/
+		std::string target_frame_;
 
 	public:
-		PCTFTransform();
+		PcTfTransform();
 		void callbackPC(const sensor_msgs::PointCloud2ConstPtr& msg);
 		void transformPC(const sensor_msgs::PointCloud2& pc2_in);
 		void publication(void);
 };
 
-PCTFTransform::PCTFTransform()
-	: _nhPrivate("~")
+PcTfTransform::PcTfTransform()
+	: nh_private_("~")
 {
 	std::cout << "--- pc_tf_transform ---" << std::endl;
 	/*parameter*/
-	_nhPrivate.param("target_frame", _target_frame, std::string("/target_frame"));
-	std::cout << "_target_frame = " << _target_frame << std::endl;
+	nh_private_.param("target_frame", target_frame_, std::string("target_frame"));
+	std::cout << "target_frame_ = " << target_frame_ << std::endl;
 	/*subscriber*/
-	_sub_pc = _nh.subscribe("/cloud", 1, &PCTFTransform::callbackPC, this);
+	sub_ = nh_.subscribe("/point_cloud", 1, &PcTfTransform::callbackPC, this);
 	/*publisher*/
-	_pub_pc = _nh.advertise<sensor_msgs::PointCloud2>("/cloud/transformed", 1);
+	pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/point_cloud/transformed", 1);
 }
 
-void PCTFTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
+void PcTfTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
 {
 	transformPC(*msg);
 }
 
-void PCTFTransform::transformPC(const sensor_msgs::PointCloud2& pc2_in)
+void PcTfTransform::transformPC(const sensor_msgs::PointCloud2& pc2_in)
 {
 	sensor_msgs::PointCloud pc1_in;
 	sensor_msgs::PointCloud pc1_trans;
@@ -50,12 +50,12 @@ void PCTFTransform::transformPC(const sensor_msgs::PointCloud2& pc2_in)
 
 	sensor_msgs::convertPointCloud2ToPointCloud(pc2_in, pc1_in);
 	try{
-		_tflistener.waitForTransform(_target_frame, pc2_in.header.frame_id, pc2_in.header.stamp, ros::Duration(1.0));
-		_tflistener.transformPointCloud(_target_frame, pc2_in.header.stamp, pc1_in, pc2_in.header.frame_id, pc1_trans);
+		tf_listener_.waitForTransform(target_frame_, pc2_in.header.frame_id, pc2_in.header.stamp, ros::Duration(1.0));
+		tf_listener_.transformPointCloud(target_frame_, pc2_in.header.stamp, pc1_in, pc2_in.header.frame_id, pc1_trans);
 		sensor_msgs::convertPointCloudToPointCloud2(pc1_trans, pc2_trans);
-		_pub_pc.publish(pc2_trans);
+		pub_.publish(pc2_trans);
 	}
-	catch(tf::TransformException ex){
+	catch(const tf::TransformException& ex){
 		ROS_ERROR("%s",ex.what());
 	}
 }
@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "pc_tf_transform");
 	
-	PCTFTransform pc_tf_transform;
+	PcTfTransform pc_tf_transform;
 
 	ros::spin();
 }
