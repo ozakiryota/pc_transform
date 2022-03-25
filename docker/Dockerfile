@@ -49,5 +49,5 @@ RUN apt-get update && \
 	git clone https://github.com/ros-drivers/velodyne.git && \
 	cd ~/catkin_ws/ && \
 	/bin/bash -c "source /opt/ros/noetic/setup.bash; catkin_make"
-########## Requirement ##########
+########## Initial position ##########
 WORKDIR /root/catkin_ws/src/pc_transform
