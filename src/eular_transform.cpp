@@ -5,7 +5,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/common/transforms.h>
 
-class PcTransform{
+class PcEularTransform{
 	private:
 		/*node handle*/
 		ros::NodeHandle nh_;
@@ -20,17 +20,17 @@ class PcTransform{
 		double r_deg_, p_deg_, y_deg_;
 
 	public:
-		PcTransform();
+		PcEularTransform();
 		void callbackPC(const sensor_msgs::PointCloud2ConstPtr& msg);
 		void transformPC(pcl::PointCloud<pcl::PointXYZI>::Ptr pc);
 		void publication(pcl::PointCloud<pcl::PointXYZI>::Ptr pc);
 		double degToRad(double deg);
 };
 
-PcTransform::PcTransform()
+PcEularTransform::PcEularTransform()
 	: nh_private_("~")
 {
-	std::cout << "--- pc_transform ---" << std::endl;
+	std::cout << "--- pc_eular_transform ---" << std::endl;
 	/*parameter*/
 	nh_private_.param("publish_frame", publish_frame_, std::string(""));
 	std::cout << "publish_frame_ = " << publish_frame_ << std::endl;
@@ -47,12 +47,12 @@ PcTransform::PcTransform()
 	nh_private_.param("y_deg", y_deg_, 0.0);
 	std::cout << "y_deg_ = " << y_deg_ << std::endl;
 	/*subscriber*/
-	sub_ = nh_.subscribe("/point_cloud", 1, &PcTransform::callbackPC, this);
+	sub_ = nh_.subscribe("/point_cloud", 1, &PcEularTransform::callbackPC, this);
 	/*publisher*/
 	pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/point_cloud/transformed", 1);
 }
 
-void PcTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
+void PcEularTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
 {
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc (new pcl::PointCloud<pcl::PointXYZI>);
     pcl::fromROSMsg(*msg, *pc);
@@ -60,7 +60,7 @@ void PcTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
 	publication(pc);
 }
 
-void PcTransform::transformPC(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
+void PcEularTransform::transformPC(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
 {
 	Eigen::Quaternionf rotation =
 		Eigen::AngleAxisf(degToRad(r_deg_), Eigen::Vector3f::UnitX())
@@ -71,7 +71,7 @@ void PcTransform::transformPC(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
 	pcl::transformPointCloud(*pc, *pc, offset, rotation);
 }
 
-void PcTransform::publication(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
+void PcEularTransform::publication(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
 {
     sensor_msgs::PointCloud2 ros_pc;
     pcl::toROSMsg(*pc, ros_pc);
@@ -79,7 +79,7 @@ void PcTransform::publication(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
     pub_.publish(ros_pc);
 }
 
-double PcTransform::degToRad(double deg)
+double PcEularTransform::degToRad(double deg)
 {
 	double rad = deg / 180.0 * M_PI;
 	rad = atan2(sin(rad), cos(rad));
@@ -88,9 +88,9 @@ double PcTransform::degToRad(double deg)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "pc_transform");
+    ros::init(argc, argv, "pc_eular_transform");
 	
-	PcTransform pc_transform;
+	PcEularTransform pc_eular_transform;
 
 	ros::spin();
 }

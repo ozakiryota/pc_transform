@@ -12,7 +12,7 @@
 	<include file="$(find velodyne_pointcloud)/launch/32e_points.launch"/>
 
 	<!-- main -->
-	<node pkg="pc_transform" type="pc_transform" name="pc_transform" output="screen">
+	<node pkg="pc_transform" type="eular_transform" name="eular_transform" output="screen">
 		<remap from="/point_cloud" to="/velodyne_points"/>
 		<remap from="/point_cloud/transformed" to="/velodyne_points/transformed"/>
 		<param name="x_m" type="double" value="1.0"/>

@@ -32,13 +32,19 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-add_executable(pc_tf_transform src/pc_tf_transform.cpp)
-target_link_libraries(pc_tf_transform
+add_executable(tf_transform src/tf_transform.cpp)
+target_link_libraries(tf_transform
   ${catkin_LIBRARIES}
 )
 
-add_executable(pc_transform src/pc_transform.cpp)
-target_link_libraries(pc_transform
+add_executable(eular_transform src/eular_transform.cpp)
+target_link_libraries(eular_transform
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+add_executable(rpy_transform src/rpy_transform.cpp)
+target_link_libraries(rpy_transform
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )

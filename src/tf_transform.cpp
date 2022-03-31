@@ -27,7 +27,7 @@ class PcTfTransform{
 PcTfTransform::PcTfTransform()
 	: nh_private_("~")
 {
-	std::cout << "--- pc_tf_transform ---" << std::endl;
+	std::cout << "--- tf_transform ---" << std::endl;
 	/*parameter*/
 	nh_private_.param("target_frame", target_frame_, std::string("target_frame"));
 	std::cout << "target_frame_ = " << target_frame_ << std::endl;
@@ -62,9 +62,9 @@ void PcTfTransform::transformPC(const sensor_msgs::PointCloud2& pc2_in)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "pc_tf_transform");
+    ros::init(argc, argv, "tf_transform");
 	
-	PcTfTransform pc_tf_transform;
+	PcTfTransform tf_transform;
 
 	ros::spin();
 }
