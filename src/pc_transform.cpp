@@ -32,7 +32,7 @@ PcTransform::PcTransform()
 {
 	std::cout << "--- pc_transform ---" << std::endl;
 	/*parameter*/
-	nh_private_.param("target_frame", publish_frame_, std::string("target_frame"));
+	nh_private_.param("publish_frame", publish_frame_, std::string(""));
 	std::cout << "publish_frame_ = " << publish_frame_ << std::endl;
 	nh_private_.param("x_m", x_m_, 0.0);
 	std::cout << "x_m_ = " << x_m_ << std::endl;
@@ -75,6 +75,7 @@ void PcTransform::publication(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
 {
     sensor_msgs::PointCloud2 ros_pc;
     pcl::toROSMsg(*pc, ros_pc);
+	if(publish_frame_ != "")	ros_pc.header.frame_id = publish_frame_;
     pub_.publish(ros_pc);
 }
 
