@@ -18,8 +18,8 @@
 		<param name="x_m" type="double" value="1.0"/>
 		<param name="y_m" type="double" value="2.0"/>
 		<param name="z_m" type="double" value="3.0"/>
-		<param name="r_deg" type="double" value="10.0"/>
-		<param name="p_deg" type="double" value="20.0"/>
-		<param name="y_deg" type="double" value="30.0"/>
+		<param name="x_deg" type="double" value="10.0"/>
+		<param name="y_deg" type="double" value="20.0"/>
+		<param name="z_deg" type="double" value="30.0"/>
 	</node>
 </launch>

@@ -17,7 +17,7 @@ class PcEularTransform{
 		/*parameter*/
 		std::string publish_frame_;
 		double x_m_, y_m_, z_m_;
-		double r_deg_, p_deg_, y_deg_;
+		double x_deg_, y_deg_, z_deg_;
 
 	public:
 		PcEularTransform();
@@ -40,12 +40,12 @@ PcEularTransform::PcEularTransform()
 	std::cout << "y_m_ = " << y_m_ << std::endl;
 	nh_private_.param("z_m", z_m_, 0.0);
 	std::cout << "z_m_ = " << z_m_ << std::endl;
-	nh_private_.param("r_deg", r_deg_, 0.0);
-	std::cout << "r_deg_ = " << r_deg_ << std::endl;
-	nh_private_.param("p_deg", p_deg_, 0.0);
-	std::cout << "p_deg_ = " << p_deg_ << std::endl;
+	nh_private_.param("x_deg", x_deg_, 0.0);
+	std::cout << "x_deg_ = " << x_deg_ << std::endl;
 	nh_private_.param("y_deg", y_deg_, 0.0);
 	std::cout << "y_deg_ = " << y_deg_ << std::endl;
+	nh_private_.param("z_deg", z_deg_, 0.0);
+	std::cout << "z_deg_ = " << z_deg_ << std::endl;
 	/*subscriber*/
 	sub_ = nh_.subscribe("/point_cloud", 1, &PcEularTransform::callbackPC, this);
 	/*publisher*/
@@ -63,9 +63,9 @@ void PcEularTransform::callbackPC(const sensor_msgs::PointCloud2ConstPtr &msg)
 void PcEularTransform::transformPC(pcl::PointCloud<pcl::PointXYZI>::Ptr pc)
 {
 	Eigen::Quaternionf rotation =
-		Eigen::AngleAxisf(degToRad(r_deg_), Eigen::Vector3f::UnitX())
-    	* Eigen::AngleAxisf(degToRad(p_deg_), Eigen::Vector3f::UnitY())
-    	* Eigen::AngleAxisf(degToRad(y_deg_), Eigen::Vector3f::UnitZ());
+		Eigen::AngleAxisf(degToRad(x_deg_), Eigen::Vector3f::UnitX())
+    	* Eigen::AngleAxisf(degToRad(y_deg_), Eigen::Vector3f::UnitY())
+    	* Eigen::AngleAxisf(degToRad(z_deg_), Eigen::Vector3f::UnitZ());
 	Eigen::Vector3f offset(x_m_, y_m_, z_m_);
 
 	pcl::transformPointCloud(*pc, *pc, offset, rotation);
