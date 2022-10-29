@@ -1,11 +1,13 @@
 <launch>
 	<!-- tf -->
-	<node pkg="tf" type="static_transform_publisher" name="static_transform_publisher" args="5 0 0 0 0 0 base_link drone/LidarCustom 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="ned_to_nwu" args="0 0 0 3.141592653 3.141592653 0 drone/LidarCustom drone/LidarCustom/nwu 100"/>
+	<node pkg="tf" type="static_transform_publisher" name="camera_to_lidar" args="0 0 0 0 0 0 drone/LidarCustom/nwu camera 100"/>
+    <node pkg="tf" type="static_transform_publisher" name="nwu_to_edn" args="0 0 0 -1.5707963265 0 -1.5707963265 camera camera/edn 100"/>
 
 	<!-- main -->
 	<node pkg="pc_transform" type="tf_transform_offline" name="tf_transform_offline" output="screen">
 		<param name="load_rosbag_path" type="string" value="$(env HOME)/rosbag/airsim/drone_2cam_lidar16/2022-10-10-13-32-27.bag"/>
-		<param name="target_frame" type="string" value="base_link"/>
+		<param name="target_frame" type="string" value="camera/edn"/>
 		<param name="topic_0" type="string" value="/airsim_node/drone/lidar/LidarCustom"/>
 	</node>
 
