@@ -20,6 +20,7 @@ class PcTfTransformOffline{
         std::vector<ros::Publisher> pc_pub_list_;
         /*buffer*/
         tf::TransformListener tf_listener_;
+        rosbag::Bag save_bag_;
 		/*parameter*/
 		std::string load_rosbag_path_;
 		std::string save_rosbag_path_;
@@ -28,14 +29,14 @@ class PcTfTransformOffline{
         float debug_hz_;
         std::vector<std::string> topic_name_list_;
         /*function*/
+        void openRosBag(rosbag::Bag& bag, const std::string& rosbag_path, int mode);
         void republishTF(const rosbag::View::iterator& view_itr);
         void transformPC(sensor_msgs::PointCloud2& pc2);
-        void writePC(const sensor_msgs::PointCloud2& pc2, const std::string& save_topic_name);
         void publishDebugPC(const sensor_msgs::PointCloud2& pc2, const std::string& topic_name);
 
 	public:
 		PcTfTransformOffline();
-        void load();
+        void execute();
 };
 
 PcTfTransformOffline::PcTfTransformOffline()
@@ -80,22 +81,28 @@ PcTfTransformOffline::PcTfTransformOffline()
 
     /*file*/
     std::filesystem::copy(load_rosbag_path_, save_rosbag_path_, std::filesystem::copy_options::overwrite_existing);
+    openRosBag(save_bag_, save_rosbag_path_, rosbag::bagmode::Append);
 }
 
-void PcTfTransformOffline::load()
+void PcTfTransformOffline::openRosBag(rosbag::Bag& bag, const std::string& rosbag_path, int mode)
 {
-    rosbag::Bag bag;
     try{
-        bag.open(load_rosbag_path_, rosbag::bagmode::Read);
+        bag.open(rosbag_path, mode);
     }
     catch(rosbag::BagException const&){
-        std::cerr << "Cannot open " << load_rosbag_path_ << std::endl;
+        std::cerr << "Cannot open " << rosbag_path << std::endl;
         exit(true);
     }
+}
 
-    rosbag::View view(bag, rosbag::TopicQuery(topic_name_list_));
+void PcTfTransformOffline::execute()
+{
+    rosbag::Bag load_bag;
+    openRosBag(load_bag, load_rosbag_path_, rosbag::bagmode::Read);
+
+    rosbag::View view(load_bag, rosbag::TopicQuery(topic_name_list_));
     rosbag::View::iterator view_itr;
-    view.addQuery(bag, rosbag::TypeQuery("tf2_msgs/TFMessage"));
+    view.addQuery(load_bag, rosbag::TypeQuery("tf2_msgs/TFMessage"));
     view_itr = view.begin();
 
     ros::Rate loop_rate(debug_hz_);
@@ -107,7 +114,7 @@ void PcTfTransformOffline::load()
                     sensor_msgs::PointCloud2Ptr pc_ptr = view_itr->instantiate<sensor_msgs::PointCloud2>();
                     publishDebugPC(*pc_ptr, view_itr->getTopic());
                     transformPC(*pc_ptr);
-                    writePC(*pc_ptr, view_itr->getTopic() + "/" + save_topic_child_name_);
+                    save_bag_.write(view_itr->getTopic() + "/" + save_topic_child_name_, pc_ptr->header.stamp, pc_ptr);
                     publishDebugPC(*pc_ptr, view_itr->getTopic() + "/" + save_topic_child_name_);
                     break;
                 }
@@ -117,7 +124,8 @@ void PcTfTransformOffline::load()
         view_itr++;
     }
 
-    bag.close();
+    load_bag.close();
+    save_bag_.close();
 }
 
 void PcTfTransformOffline::republishTF(const rosbag::View::iterator& view_itr)
@@ -142,20 +150,6 @@ void PcTfTransformOffline::transformPC(sensor_msgs::PointCloud2& pc2)
 	}
 }
 
-void PcTfTransformOffline::writePC(const sensor_msgs::PointCloud2& pc2, const std::string& save_topic_name)
-{
-    rosbag::Bag bag;
-    try{
-        bag.open(save_rosbag_path_, rosbag::bagmode::Append);
-    }
-    catch(rosbag::BagException const&){
-        std::cerr << "Cannot open " << save_rosbag_path_ << std::endl;
-        exit(true);
-    }
-    bag.write(save_topic_name, pc2.header.stamp, pc2);
-    bag.close();
-}
-
 void PcTfTransformOffline::publishDebugPC(const sensor_msgs::PointCloud2& pc2, const std::string& topic_name)
 {
     sensor_msgs::PointCloud2 debug_pc = pc2;
@@ -174,5 +168,5 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "pc_tf_transform_offline");
 	
 	PcTfTransformOffline pc_tf_transform_offline;
-    pc_tf_transform_offline.load();
+    pc_tf_transform_offline.execute();
 }
