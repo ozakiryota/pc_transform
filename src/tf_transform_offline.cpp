@@ -114,7 +114,7 @@ void PcTfTransformOffline::execute()
                     sensor_msgs::PointCloud2Ptr pc_ptr = view_itr->instantiate<sensor_msgs::PointCloud2>();
                     publishDebugPC(*pc_ptr, view_itr->getTopic());
                     transformPC(*pc_ptr);
-                    save_bag_.write(view_itr->getTopic() + "/" + save_topic_child_name_, pc_ptr->header.stamp, pc_ptr);
+                    save_bag_.write(view_itr->getTopic() + "/" + save_topic_child_name_, view_itr->getTime(), pc_ptr);
                     publishDebugPC(*pc_ptr, view_itr->getTopic() + "/" + save_topic_child_name_);
                     break;
                 }
